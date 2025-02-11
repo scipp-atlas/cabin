@@ -1,0 +1,108 @@
+[build-system]
+requires = ["hatchling>=0.7", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "CABIN-learn"
+dynamic = ["version"]
+authors = [
+    { name = "Mike Hance", email = "mhance@ucsc.edu" },
+]
+maintainers = [
+    { name = "Mike Hance", email = "mhance@ucsc.edu" },
+]
+
+description = "Package for learning Cuts As Biases In Networks"
+readme = "README.md"
+
+requires-python = ">=3.8"
+
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Development Status :: 1 - Planning",
+]
+
+dependencies = [
+    "torch",
+]
+
+# see https://github.com/pypi/warehouse/blob/main/warehouse/templates/packaging/detail.html
+[project.urls]
+Tracker = "https://github.com/scipp-atlas/CABIN-learn/issues"
+Source = "https://github.com/scipp-atlas/CABIN-learn"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
+[tool.hatch.build]
+exclude = [
+  "/ci",
+  "/Dockerfiles",
+  "/stats/",
+  "/test/",
+  "/.*",
+  "/*.sh",
+  "/*.toml", # note: does not remove pyproject.toml
+]
+
+[tool.hatch.build.targets.sdist]
+
+[tool.hatch.build.targets.wheel.shared-data]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pylint",
+    "build",
+    "twine",
+]
+
+[tool.hatch.envs.default.scripts]
+lint = "pylint src"
+build = "python -m build"
+validate = "twine check dist/*"
+# https://github.com/linkchecker/linkchecker/issues/678
+build-check = [
+  "build",
+  "validate",
+]
+
+[tool.hatch.envs.dev]
+template = "dev"
+# pylint and pytest needs to be installed into package environment
+detached = false
+dependencies = [
+    "pytest >=6",
+]
+
+[tool.hatch.envs.dev.scripts]
+test = "pytest -ra {args}"
+
+[[tool.hatch.envs.dev.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "pypy3.8"]
+
+[tool.pylint]
+master.py-version = "3.8"
+master.ignore-paths= ["src/mapyde/_versio.ngipy", "src/mapyde/data"]
+reports.output-format = "colorized"
+similarities.ignore-imports = "yes"
+messages_control.disable = [
+  "design",
+  "fixme",
+  "line-too-long",
+  "wrong-import-position",
+]
