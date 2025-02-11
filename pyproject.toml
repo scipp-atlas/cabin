@@ -97,7 +97,6 @@ python = ["3.8", "3.9", "3.10", "3.11", "pypy3.8"]
 
 [tool.pylint]
 master.py-version = "3.8"
-master.ignore-paths= ["src/mapyde/_versio.ngipy", "src/mapyde/data"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
 messages_control.disable = [
@@ -105,4 +104,13 @@ messages_control.disable = [
   "fixme",
   "line-too-long",
   "wrong-import-position",
+]
+disable = [
+"C0103",
+"C0114",
+"C0115",
+"C0116",
+"C0123",
+"C0200",
+"C0414"
 ]
