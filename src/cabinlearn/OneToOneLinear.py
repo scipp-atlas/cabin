@@ -51,19 +51,19 @@ class OneToOneLinear(torch.nn.Module):
     def get_cuts(self) -> Tensor:
         return -self.bias / self.weight
 
-    def apply_cuts(self, input: Tensor) -> Tensor:
+    def apply_cuts(self, inputs: Tensor) -> Tensor:
         # need to turn the "weights" vector into a matrix with the vector
         # elements on the diagonal, and zeroes everywhere else.
-        targets = torch.matmul(input, torch.diag(self.weight)) + self.bias
+        targets = torch.matmul(inputs, torch.diag(self.weight)) + self.bias
         return targets
 
-    def pass_cuts(self, input: Tensor) -> Tensor:
-        t = self.apply_cuts(input)
+    def pass_cuts(self, inputs: Tensor) -> Tensor:
+        t = self.apply_cuts(inputs)
         return torch.all(t > 0, dim=1)
 
-    def forward(self, input: Tensor) -> Tensor:
+    def forward(self, inputs: Tensor) -> Tensor:
         # apply the cuts
-        targets = self.apply_cuts(input)
+        targets = self.apply_cuts(inputs)
 
         # activation function
         targets = torch.sigmoid(self.activation_scale_factor * targets)

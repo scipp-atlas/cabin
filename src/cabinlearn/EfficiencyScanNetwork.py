@@ -30,7 +30,7 @@ class EfficiencyScanNetwork(torch.nn.Module):
         outputs = torch.stack(tuple(self.nets[i](x) for i in range(len(self.effics))))
         return outputs
 
-    def to(self, device):
+    def to(self, device):  # noqa: pylint: disable=W0221
         super().to(device)
         for n in self.nets:
             n.to(device)
