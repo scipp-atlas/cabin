@@ -16,7 +16,7 @@ maintainers = [
 description = "Package for learning Cuts As Biases In Networks"
 readme = "README.md"
 
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 
 classifiers = [
     "License :: OSI Approved :: BSD License",
@@ -27,10 +27,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
     "Development Status :: 1 - Planning",
 ]
 
