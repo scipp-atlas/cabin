@@ -86,5 +86,5 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         if:
-          github.event.action == 'published'
+          github.event_name == 'release' && github.event.action == 'published'
           && github.repository == 'scipp-atlas/cabinlearn'
