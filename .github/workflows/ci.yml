@@ -35,7 +35,7 @@ jobs:
       - name: Run PyLint
         run: |
           echo "::add-matcher::$GITHUB_WORKSPACE/.github/matchers/pylint.json"
-          pipx run hatch run lint --errors-only
+          pipx run hatch run lint
 
 
   checks:
