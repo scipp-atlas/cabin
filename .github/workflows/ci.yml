@@ -17,6 +17,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
+
+  pre-commit:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --hook-stage manual --all-files
+      - name: Run PyLint
+        run: |
+          echo "::add-matcher::$GITHUB_WORKSPACE/.github/matchers/pylint.json"
+          pipx run hatch run lint
+
+
   checks:
     name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
@@ -66,4 +87,4 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         if:
           github.event_name == 'release' && github.event.action == 'published'
-          && github.repository == 'scipp-atlas/CABIN-learn'
+          && github.repository == 'scipp-atlas/cabinlearn'
