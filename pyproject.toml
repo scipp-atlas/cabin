@@ -36,6 +36,7 @@ classifiers = [
 
 dependencies = [
     "torch",
+    "numpy",
 ]
 
 # see https://github.com/pypi/warehouse/blob/main/warehouse/templates/packaging/detail.html
@@ -92,8 +93,8 @@ dependencies = [
 [tool.hatch.envs.dev.scripts]
 test = "pytest -ra {args}"
 
-#[[tool.hatch.envs.dev.matrix]]
-#python = ["3.8", "3.9", "3.10", "3.11", "pypy3.8"]
+[[tool.hatch.envs.dev.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "pypy3.8"]
 
 [tool.pylint]
 master.py-version = "3.8"
