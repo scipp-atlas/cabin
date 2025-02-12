@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 
 [project]
-name = "cabinlearn"
+name = "cabin"
 dynamic = ["version"]
 authors = [
     { name = "Mike Hance", email = "mhance@ucsc.edu" },
@@ -38,8 +38,8 @@ dependencies = [
 
 # see https://github.com/pypi/warehouse/blob/main/warehouse/templates/packaging/detail.html
 [project.urls]
-Tracker = "https://github.com/scipp-atlas/cabinlearn/issues"
-Source = "https://github.com/scipp-atlas/cabinlearn"
+Tracker = "https://github.com/scipp-atlas/cabin/issues"
+Source = "https://github.com/scipp-atlas/cabin"
 
 [tool.hatch.version]
 source = "vcs"

@@ -1,7 +1,7 @@
 import torch
 import torch.nn
 
-from cabinlearn.OneToOneLinear import OneToOneLinear
+from cabin.OneToOneLinear import OneToOneLinear
 
 
 class EfficiencyScanNetwork(torch.nn.Module):

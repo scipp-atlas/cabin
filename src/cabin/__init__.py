@@ -1,8 +1,8 @@
-from cabinlearn.OneToOneLinear import OneToOneLinear as OneToOneLinear
-from cabinlearn.EfficiencyScanNetwork import (
+from cabin.OneToOneLinear import OneToOneLinear as OneToOneLinear
+from cabin.EfficiencyScanNetwork import (
     EfficiencyScanNetwork as EfficiencyScanNetwork,
 )
-from cabinlearn.LossFunctions import (
+from cabin.LossFunctions import (
     lossvars as lossvars,
     loss_fn as loss_fn,
     effic_loss_fn as effic_loss_fn,
