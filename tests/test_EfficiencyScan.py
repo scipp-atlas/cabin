@@ -1,4 +1,4 @@
-import cabinlearn.EfficiencyScanNetwork as EfficiencyScanNetwork
+import cabin.EfficiencyScanNetwork as EfficiencyScanNetwork
 
 m = 2
 targeteffics = [0.8]
