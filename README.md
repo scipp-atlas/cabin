@@ -10,4 +10,4 @@ The `OneToOneLinear` class models pass/fail requirements on input features as a 
 
 The `EfficiencyScanNetwork` class is composed of a collection of `OneToOneLinear` objects that targets a range of signal efficiencies.  Another loss function ([`effic_loss_fn`](https://github.com/scipp-atlas/cabin/blob/main/src/cabin/LossFunctions.py#L122)) can be used to ensure that cuts vary smoothly across different efficiency working points.
 
-The libraries were developed with high-energy physics applications in mind, but the appoach can be applied to any binary classification problem.
+The libraries were developed with high-energy physics applications in mind, but the approach can be applied to any binary classification problem.
