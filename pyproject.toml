@@ -91,7 +91,7 @@ dependencies = [
 test = "pytest -ra {args}"
 
 [[tool.hatch.envs.dev.matrix]]
-python = ["3.12"]
+python = ["3.12","3.10","3.8","pypy3.8"]
 
 [tool.pylint]
 master.py-version = "3.8"
