@@ -32,8 +32,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "torch",
-    "numpy",
+    "torch"
 ]
 
 # see https://github.com/pypi/warehouse/blob/main/warehouse/templates/packaging/detail.html
@@ -41,17 +40,8 @@ dependencies = [
 Tracker = "https://github.com/scipp-atlas/cabin/issues"
 Source = "https://github.com/scipp-atlas/cabin"
 
-[tool.hatch.version]
-source = "vcs"
-
-[tool.hatch.version.raw-options]
-local_scheme = "no-local-version"
-
 [tool.hatch.build]
 exclude = [
-  "/ci",
-  "/Dockerfiles",
-  "/stats/",
   "/test/",
   "/.*",
   "/*.sh",
@@ -92,6 +82,18 @@ test = "pytest -ra {args}"
 
 [[tool.hatch.envs.dev.matrix]]
 python = ["3.12","3.10","3.8","pypy3.8"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+filterwarnings = ["error"]
+testpaths = [
+    "tests",
+]
+log_cli_level = "INFO"
+
+
 
 [tool.pylint]
 master.py-version = "3.8"
