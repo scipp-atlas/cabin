@@ -32,7 +32,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "torch"
+    "torch",
+    "numpy"
 ]
 
 # see https://github.com/pypi/warehouse/blob/main/warehouse/templates/packaging/detail.html
