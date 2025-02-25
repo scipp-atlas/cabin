@@ -50,23 +50,34 @@ class lossvars:
 
 # Basically a more sophisticated version of S/sqrt(B) or S/B.
 # see https://cds.cern.ch/record/2736148
-def ATLAS_significance_loss(y_pred, y_true, reluncert=0.2):
+def ATLAS_significance_loss(y_pred, y_true, reluncert=0.2, eps=1e-12):
     s = y_pred * y_true
     b = y_pred * (1.0 - y_true)
-    n = s + b
-    sigma = reluncert * b
-    x = 0
-    y = 0
-    if sigma > 0.0:
-        x = n * torch.log((n * (b + sigma * sigma)) / (b * b + n * sigma * sigma))
-        y = (b * b / (sigma * sigma)) * torch.log(
-            1 + (sigma * sigma * (n - b) / (b * (b + sigma * sigma)))
-        )
-    else:
-        # avoid divergence at sigma=0 by approximating ln(1+epsilon)~epsilon
-        x = n * torch.log(n / b)
-        y = n - b
-    return -torch.sqrt(2 * (x - y))
+    
+    # Add epsilon for numerical stability
+    b_safe = b + eps
+    sigma = reluncert * b_safe
+    
+    # Prevent negative values through clamping
+    n = torch.clamp(s + b_safe, min=eps)
+    
+    # Compute x and y with safe denominators
+    sigma_sq = torch.square(sigma)
+    denom = torch.clamp(b_safe**2 + n * sigma_sq, min=eps)
+    x = n * torch.log((n * (b_safe + sigma_sq)) / denom)
+    
+    # Compute y term with regularization
+    y_num = sigma_sq * (n - b_safe)
+    y_denom = torch.clamp(b_safe * (b_safe + sigma_sq), min=eps)
+    y = (b_safe**2 / sigma_sq) * torch.log(1 + y_num / y_denom)
+    
+    # Handle pure signal case (b=0)
+    mask = (b < eps) & (sigma < eps)
+    x = torch.where(mask, n * torch.log(n/eps), x)
+    y = torch.where(mask, n - b_safe, y)
+    
+    return -torch.sqrt(2 * torch.clamp(x - y, min=eps))
+
 
 
 def loss_fn(
