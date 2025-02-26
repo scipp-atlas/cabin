@@ -53,24 +53,24 @@ class lossvars:
 def ATLAS_significance_loss(y_pred, y_true, reluncert=0.2, eps=1e-12):
     s = y_pred * y_true
     b = y_pred * (1.0 - y_true)
-    
+
     # Add epsilon for numerical stability
     b_safe = b + eps
     sigma = reluncert * b_safe
-    
+
     # Prevent negative values through clamping
     n = torch.clamp(s + b_safe, min=eps)
-    
+
     # Compute x and y with safe denominators
     sigma_sq = torch.square(sigma)
     denom = torch.clamp(b_safe**2 + n * sigma_sq, min=eps)
     x = n * torch.log((n * (b_safe + sigma_sq)) / denom)
-    
+
     # Compute y term with regularization
     y_num = sigma_sq * (n - b_safe)
     y_denom = torch.clamp(b_safe * (b_safe + sigma_sq), min=eps)
     y = (b_safe**2 / sigma_sq) * torch.log(1 + y_num / y_denom)
-    
+
     # Handle pure signal case (b=0)
     mask = (b < eps) & (sigma < eps)
     x = torch.where(mask, n * torch.log(n / eps), x)
@@ -80,7 +80,6 @@ def ATLAS_significance_loss(y_pred, y_true, reluncert=0.2, eps=1e-12):
     # not generally true if used to test the significance in data.
     # in that case, see ATLAS paper cited above for sign convention.
     return torch.sqrt(2 * torch.clamp(x - y, min=eps))
-
 
 
 def loss_fn(
