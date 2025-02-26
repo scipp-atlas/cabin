@@ -75,8 +75,11 @@ def ATLAS_significance_loss(y_pred, y_true, reluncert=0.2, eps=1e-12):
     mask = (b < eps) & (sigma < eps)
     x = torch.where(mask, n * torch.log(n/eps), x)
     y = torch.where(mask, n - b_safe, y)
-    
-    return -torch.sqrt(2 * torch.clamp(x - y, min=eps))
+
+    # assumes n>b, which is true if used during an optimization task.
+    # not generally true if used to test the significance in data.
+    # in that case, see ATLAS paper cited above for sign convention.
+    return torch.sqrt(2 * torch.clamp(x - y, min=eps))
 
 
 
