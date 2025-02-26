@@ -73,7 +73,7 @@ def ATLAS_significance_loss(y_pred, y_true, reluncert=0.2, eps=1e-12):
     
     # Handle pure signal case (b=0)
     mask = (b < eps) & (sigma < eps)
-    x = torch.where(mask, n * torch.log(n/eps), x)
+    x = torch.where(mask, n * torch.log(n / eps), x)
     y = torch.where(mask, n - b_safe, y)
 
     # assumes n>b, which is true if used during an optimization task.
