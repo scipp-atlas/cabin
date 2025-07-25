@@ -93,6 +93,7 @@ def loss_fn(
     gamma=0.001,
     delta=0.0,
     debug=False,
+    is_dual_network=False,
 ):
 
     loss = lossvars()
@@ -118,8 +119,18 @@ def loss_fn(
 
     # also prefer to have the cuts be close to zero, so they're not off at some crazy
     # value even if the cut doesn't discriminate much
-    cuts = net.get_cuts()
-    loss.cutszloss = gamma * torch.sum(torch.square(cuts)) / features
+    if is_dual_network:
+        # For dual networks, get cuts from both accept and reject networks
+        accept_cuts, reject_cuts = net.get_cuts()
+        cuts_loss = torch.sum(torch.square(accept_cuts)) + torch.sum(torch.square(reject_cuts))
+        loss.cutszloss = gamma * cuts_loss / (features * 2)  # divided by 2 since we have 2 networks
+    else:
+        cuts = net.get_cuts()
+        if hasattr(net, 'mode') and net.mode in ["window_keep", "window_reject"]:
+            # For window modes, cuts are (original_features, 2) shaped
+            loss.cutszloss = gamma * torch.sum(torch.square(cuts)) / (cuts.numel())
+        else:
+            loss.cutszloss = gamma * torch.sum(torch.square(cuts)) / features
 
     # calculate the BCE loss, just because.
     loss.BCEloss = delta * torch.nn.BCELoss()(y_pred, y_true)
@@ -150,6 +161,9 @@ def effic_loss_fn(
     for i in range(len(net.effics)):
         effic = net.effics[i]
         efficnet = net.nets[i]
+        # Check if this is a dual network (mode 4)
+        is_dual = hasattr(net, 'mode') and net.mode == "window_reject"
+        
         loss_i = loss_fn(
             y_pred[i],
             y_true,
@@ -161,6 +175,7 @@ def effic_loss_fn(
             gamma,
             delta,
             debug,
+            is_dual_network=is_dual,
         )
         if sumefficlosses is None:
             sumefficlosses = loss_i
