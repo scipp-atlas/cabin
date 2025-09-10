@@ -47,7 +47,7 @@ class lossvars:
             third.backgreffic.append(other.backgreffic)
         return third
 
-    def __copy__(self, other):
+    def copy(self, other):
         self.efficloss = other.efficloss
         self.backgloss = other.backgloss
         self.cutszloss = other.cutszloss
