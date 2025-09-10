@@ -38,5 +38,4 @@ class EfficiencyScanNetwork(torch.nn.Module):
     def __getitem__(self, key):
         if key < len(self.nets):
             return self.nets[key]
-        else:
-            raise KeyError(f"Key '{key}' not found in nets.")
+        raise KeyError(f"Key '{key}' not found in nets.")
