@@ -47,6 +47,22 @@ class lossvars:
             third.backgreffic.append(other.backgreffic)
         return third
 
+    def __copy__(self, other):
+        self.efficloss = other.efficloss
+        self.backgloss = other.backgloss
+        self.cutszloss = other.cutszloss
+        self.monotloss = other.monotloss
+        self.BCEloss = other.BCEloss
+        self.signaleffic = other.signaleffic
+        self.backgreffic = other.backgreffic
+
+    def scale(self, scalefact):
+        self.efficloss = scalefact * self.efficloss
+        self.backgloss = scalefact * self.backgloss
+        self.cutszloss = scalefact * self.cutszloss
+        self.monotloss = scalefact * self.monotloss
+        self.BCEloss = scalefact * self.BCEloss
+
 
 # Basically a more sophisticated version of S/sqrt(B) or S/B.
 # see https://cds.cern.ch/record/2736148
@@ -80,6 +96,58 @@ def ATLAS_significance_loss(y_pred, y_true, reluncert=0.2, eps=1e-12):
     # not generally true if used to test the significance in data.
     # in that case, see ATLAS paper cited above for sign convention.
     return torch.sqrt(2 * torch.clamp(x - y, min=eps))
+
+
+def smooth_loss_fn(xaxis, cuts):
+    loss = None
+
+    if len(xaxis) < 3:
+        return loss
+
+    for i in range(1, len(xaxis) - 1):
+        # y is the cut, x is the dependent variable (e.g. efficiency, or pT, or mu)
+        y_i = cuts[i]
+        y_im1 = cuts[i - 1]
+        y_ip1 = cuts[i + 1]
+        x_i = xaxis[i]
+        x_im1 = xaxis[i - 1]
+        x_ip1 = xaxis[i + 1]
+
+        fl = None
+
+        # ------------------------------------------------------------------
+        # This method just forces cut i to be in between cut i+1 and cut i-1.
+        #
+        # add some small term so that when cutrange=0 the loss doesn't become undefined
+        xrange = x_ip1 - x_im1
+        yrange = y_ip1 - y_im1
+
+        slope = yrange / xrange
+        interp = slope * (x_i - x_im1) + y_im1
+        distance_from_interp = y_i - interp
+
+        # add some offset to denominator to avoid case where cutrange=0.
+        # playing with the exponent doesn't change behavior much.
+        # it's important that this term not become too large, otherwise
+        # the training won't converge.  just a modest penalty for moving
+        # away from the linear interpolation should do the trick.
+        exponent = (
+            2.0  # if this changes, e.g. to 4, then epsilon will also need to increase
+        )
+        fl = (distance_from_interp**exponent) / ((yrange**exponent) + 0.1)
+        # ------------------------------------------------------------------
+
+        # ------------------------------------------------------------------
+        ## can also do it this way, which just forces all sequential cuts to be similar.
+        # fl = torch.pow(cuts_i-cuts_im1,2) + torch.pow(cuts_i-cuts_ip1,2) + torch.pow(cuts_im1-cuts_ip1,2)
+        # ------------------------------------------------------------------
+        if loss is None:
+            loss = fl
+        else:
+            loss = loss + fl
+
+    # sum over all cuts, and normalize to the number of xaxis points
+    return torch.sum(loss) / len(xaxis)
 
 
 def loss_fn(
@@ -165,74 +233,18 @@ def effic_loss_fn(
         if sumefficlosses is None:
             sumefficlosses = loss_i
         else:
-            # sumefficlosses=torch.add(sumefficlosses,l)
             sumefficlosses = sumefficlosses + loss_i
 
     loss = sumefficlosses
-    # now set up global penalty for cuts that vary net by net.
-    # some options:
-    # a. penalize a large range of cut values
-    # b. penalize large changes between nearest neighbors
-    # c. test for non-monotonicity?
-    #
-    # go for b for now.
-    #
 
-    # For a fancier way to force monotonic behavior, see e.g.
-    # https://pypi.org/project/monotonicnetworks/
-    #
-    # Note that this also has issues since sortedeffics won't necessarily have the same
-    # index mapping as 'nets'....  so lots of potential problems here.
-    #
-    sortedeffics = sorted(net.effics)
+    if len(net.effics) >= 3:
+        cuts = [net.nets[k].get_cuts() for k in range(len(net.effics))]
+        efl = smooth_loss_fn(net.effics, cuts)
+        if loss.monotloss == 0:
+            loss.monotloss = efl
+        else:
+            loss.monotloss = loss.monotloss + efl
 
-    if len(sortedeffics) >= 3:
-        featureloss = None
-        for i in range(1, len(sortedeffics) - 1):
-            cuts_i = net.nets[i].get_cuts()
-            cuts_im1 = net.nets[i - 1].get_cuts()
-            cuts_ip1 = net.nets[i + 1].get_cuts()
-
-            # calculate distance between cuts.
-            # would be better to implement this as some kind of distance away from the region
-            # between the two other cuts.
-            #
-            # maybe some kind of dot product?  think about Ising model.
-            #
-            # maybe we just do this for the full set of biases, to see how many transitions there are?  no need for a loop?
-            #
-            # otherwise just implement as a switch that calculates a distance if outside of the range of the two cuts, zero otherwise
-            fl = None
-
-            # ------------------------------------------------------------------
-            # This method just forces cut i to be in between cut i+1 and cut i-1.
-            #
-            # add some small term so that when cutrange=0 the loss doesn't become undefined
-            cutrange = cuts_ip1 - cuts_im1
-            mean = (cuts_ip1 + cuts_im1) / 2.0
-            distance_from_mean = cuts_i - mean
-
-            # add some offset to denominator to avoid case where cutrange=0.
-            # playing with the exponent doesn't change behavior much.
-            # it's important that this term not become too large, otherwise
-            # the training won't converge.  just a modest penalty for moving
-            # away from the mean should do the trick.
-            exponent = 2.0  # if this changes, e.g. to 4, then epsilon will also need to increase
-            fl = (distance_from_mean**exponent) / ((cutrange**exponent) + 0.1)
-            # ------------------------------------------------------------------
-
-            # ------------------------------------------------------------------
-            ## can also do it this way, which just forces all sequential cuts to be similar.
-            # fl = torch.pow(cuts_i-cuts_im1,2) + torch.pow(cuts_i-cuts_ip1,2) + torch.pow(cuts_im1-cuts_ip1,2)
-            # ------------------------------------------------------------------
-
-            if featureloss is None:
-                featureloss = fl
-            else:
-                featureloss = featureloss + fl
-
-        # need to sum all the contributions to this component of the loss from the different features.
-        sumfeaturelosses = torch.sum(featureloss) / (len(sortedeffics) - 2) / features
-        loss.monotloss = epsilon * sumfeaturelosses
+        loss.monotloss = epsilon * loss.monotloss
 
     return loss
